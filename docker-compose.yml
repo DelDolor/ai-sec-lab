@@ -1,0 +1,99 @@
+services:
+
+  ai-gateway:
+    build: ./apps/ai-gateway
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - OLLAMA_HOST=ollama
+      - OLLAMA_PORT=11434
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_SERVICE_NAME=ai-gateway
+    depends_on:
+      - qdrant
+      - ollama
+      - otel-collector
+    networks:
+      - ai-sec-net
+    restart: unless-stopped
+
+  agent-runtime:
+    build: ./apps/agent-runtime
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    environment:
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - OLLAMA_HOST=ollama
+      - OLLAMA_PORT=11434
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_SERVICE_NAME=agent-runtime
+    depends_on:
+      - qdrant
+      - ollama
+      - otel-collector
+    networks:
+      - ai-sec-net
+    restart: unless-stopped
+
+  rag-ingestion:
+    build: ./apps/rag-ingestion
+    ports:
+      - "8002:8002"
+    env_file:
+      - .env
+    environment:
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_SERVICE_NAME=rag-ingestion
+    volumes:
+      - ./data/documents:/data/documents:ro
+    depends_on:
+      - qdrant
+      - otel-collector
+    networks:
+      - ai-sec-net
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+    volumes:
+      - ./storage/qdrant:/qdrant/storage
+    networks:
+      - ai-sec-net
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./storage/ollama:/root/.ollama
+    networks:
+      - ai-sec-net
+    restart: unless-stopped
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./observability/otel-collector/config.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    networks:
+      - ai-sec-net
+    restart: unless-stopped
+
+networks:
+  ai-sec-net:
+    driver: bridge

@@ -1,4 +1,10 @@
 # ============================================================
+# Claude Code local settings (developer-specific, not project-wide)
+# ============================================================
+
+.claude/settings.local.json
+
+# ============================================================
 # OS / Editor
 # ============================================================
 
@@ -121,6 +127,7 @@ models/
 model-cache/
 ollama/
 .ollama/
+storage/ollama/
 
 .cache/huggingface/
 huggingface/

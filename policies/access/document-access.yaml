@@ -1,0 +1,39 @@
+version: "1.0"
+policy: document-access
+
+default_access: deny
+
+roles:
+  - name: researcher
+    description: Standard read-only access to approved documents.
+    allowed_collections:
+      - documents
+    allowed_operations:
+      - search
+      - read_chunk
+    denied_collections:
+      - poisoned-docs
+      - admin
+
+  - name: lab-admin
+    description: Administrative access for ingestion, testing, and collection management.
+    allowed_collections:
+      - documents
+      - poisoned-docs
+    allowed_operations:
+      - search
+      - read_chunk
+      - ingest
+      - delete
+
+metadata_acl:
+  enforce_classification_labels: true
+  deny_if_classification_missing: false
+  allowed_classifications:
+    - public
+    - internal
+
+audit:
+  log_all_access_decisions: true
+  log_denied_access: true
+  event: ai.policy.decision

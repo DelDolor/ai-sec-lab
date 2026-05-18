@@ -1,0 +1,43 @@
+<!-- AI Security Lab — Wazuh Decoders
+     Decodes structured JSON log events emitted by ai-gateway and agent-runtime.
+     All events share the "service" field; sub-decoders match on event_type. -->
+
+<decoder name="ai-security-base">
+  <type>json</type>
+  <prematch>{"service":</prematch>
+</decoder>
+
+<decoder name="ai-prompt-injection">
+  <parent>ai-security-base</parent>
+  <prematch>"event_type":"ai.prompt_injection.detected"</prematch>
+  <regex>"session_id":"(\.+?)","user_id":"(\.+?)"</regex>
+  <order>session_id, user_id</order>
+</decoder>
+
+<decoder name="ai-tool-call-denied">
+  <parent>ai-security-base</parent>
+  <prematch>"event_type":"ai.tool_call.denied"</prematch>
+  <regex>"tool":"(\.+?)","session_id":"(\.+?)"</regex>
+  <order>tool_name, session_id</order>
+</decoder>
+
+<decoder name="ai-rag-poisoning">
+  <parent>ai-security-base</parent>
+  <prematch>"event_type":"ai.rag.poisoning_suspected"</prematch>
+  <regex>"document_id":"(\.+?)"</regex>
+  <order>document_id</order>
+</decoder>
+
+<decoder name="ai-kill-switch">
+  <parent>ai-security-base</parent>
+  <prematch>"event_type":"ai.kill_switch.activated"</prematch>
+  <regex>"session_id":"(\.+?)"</regex>
+  <order>session_id</order>
+</decoder>
+
+<decoder name="ai-policy-decision">
+  <parent>ai-security-base</parent>
+  <prematch>"event_type":"ai.policy.decision"</prematch>
+  <regex>"decision":"(\w+)"</regex>
+  <order>policy_decision</order>
+</decoder>

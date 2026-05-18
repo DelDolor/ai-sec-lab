@@ -1,0 +1,42 @@
+version: "1.0"
+policy: output-guardrails
+
+checks:
+  - name: citation_required
+    enabled: true
+    action: reject_if_missing
+    description: Every answer must include at least one source citation.
+    event: ai.policy.decision
+
+  - name: max_output_length
+    enabled: true
+    max_chars: 8192
+    action: truncate
+
+  - name: sensitive_data_detection
+    enabled: true
+    action: redact
+    description: Scan output for common sensitive data patterns before returning to caller.
+    patterns:
+      - type: email_address
+      - type: phone_number
+      - type: credential_like_string
+
+  - name: hallucination_guard
+    enabled: true
+    action: flag_for_review
+    event: ai.policy.decision
+    description: >
+      Flag responses that contain factual claims not traceable to a retrieved chunk.
+      Implemented as a heuristic check in Phase 2; a dedicated verifier is a Phase 4 goal.
+
+  - name: instruction_leak_detection
+    enabled: true
+    action: block
+    description: >
+      Block responses that reproduce system prompt content or tool policy details
+      verbatim — indicator that indirect injection succeeded.
+
+logging:
+  log_all_decisions: true
+  event_format: structured_json

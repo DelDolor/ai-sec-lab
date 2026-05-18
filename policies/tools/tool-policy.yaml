@@ -1,0 +1,36 @@
+version: "1.0"
+policy: tool-policy
+
+allowed_tools:
+  - name: search_documents
+    description: Search the local Qdrant vector database for relevant document chunks.
+  - name: read_document_chunk
+    description: Retrieve a specific document chunk by its ID.
+  - name: create_answer_with_citations
+    description: Compose a final answer from retrieved chunks and attach source citations.
+
+denied_tools:
+  - name: shell_exec
+    reason: Prevents arbitrary command execution on the host.
+  - name: write_file
+    reason: Prevents unauthorized writes to the file system.
+  - name: send_email
+    reason: Prevents data exfiltration via email.
+  - name: browse_web
+    reason: Prevents unauthorized internet access.
+  - name: call_external_api
+    reason: Prevents unauthorized calls to external services.
+  - name: read_file
+    reason: Direct file system reads are not permitted; documents must go through the RAG pipeline.
+
+limits:
+  max_tool_calls_per_request: 5
+  max_retrieved_chunks: 8
+  require_citations: true
+  timeout_seconds: 30
+
+enforcement:
+  deny_unlisted_tools: true
+  log_all_tool_calls: true
+  log_denied_tool_calls: true
+  emit_event_on_deny: ai.tool_call.denied

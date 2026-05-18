@@ -1,0 +1,47 @@
+version: "1.0"
+policy: input-guardrails
+
+checks:
+  - name: max_input_length
+    enabled: true
+    max_chars: 4096
+    action: reject
+    event: ai.policy.decision
+
+  - name: prompt_injection_detection
+    enabled: true
+    action: block
+    event: ai.prompt_injection.detected
+    patterns:
+      - "ignore previous instructions"
+      - "ignore your system prompt"
+      - "disregard your instructions"
+      - "you are now"
+      - "pretend you are"
+      - "your new instructions are"
+      - "forget everything above"
+      - "act as if"
+      - "override your guidelines"
+      - "jailbreak"
+    note: >
+      These are heuristic patterns for lab experiments. A production system would
+      use a dedicated classifier. Extend this list as new injection patterns are
+      discovered during lab exercises.
+
+  - name: rate_limiting
+    enabled: true
+    max_requests_per_minute: 20
+    scope: per_session
+    action: throttle
+    event: ai.policy.decision
+
+  - name: session_isolation
+    enabled: true
+    enforce_session_boundary: true
+    action: reject
+    description: Reject requests that attempt to reference another session's context.
+
+logging:
+  log_all_decisions: true
+  include_matched_pattern: false
+  event_format: structured_json

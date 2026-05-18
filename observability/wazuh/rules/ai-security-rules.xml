@@ -1,0 +1,59 @@
+<!-- AI Security Lab — Wazuh Detection Rules
+     Rule ID range: 100100–100199 (local custom rules).
+     All rules map to the event_types emitted by ai-gateway and agent-runtime. -->
+
+<group name="ai-security,">
+
+  <!-- ── Single-event rules ──────────────────────────────────────────────── -->
+
+  <rule id="100100" level="10">
+    <decoded_as>ai-prompt-injection</decoded_as>
+    <description>AI Security: Prompt injection attempt detected in user input</description>
+    <group>ai.prompt_injection,attack,</group>
+  </rule>
+
+  <rule id="100101" level="6">
+    <decoded_as>ai-tool-call-denied</decoded_as>
+    <description>AI Security: Denied tool call attempted by agent</description>
+    <group>ai.tool_misuse,policy_violation,</group>
+  </rule>
+
+  <rule id="100102" level="12">
+    <decoded_as>ai-rag-poisoning</decoded_as>
+    <description>AI Security: RAG poisoning suspected — retrieved document contains instruction-like content</description>
+    <group>ai.rag_poisoning,attack,</group>
+  </rule>
+
+  <rule id="100103" level="15">
+    <decoded_as>ai-kill-switch</decoded_as>
+    <description>AI Security: Kill switch activated — agent execution halted</description>
+    <group>ai.kill_switch,critical,</group>
+  </rule>
+
+  <rule id="100104" level="3">
+    <decoded_as>ai-policy-decision</decoded_as>
+    <description>AI Security: Policy decision recorded</description>
+    <group>ai.policy,audit,</group>
+  </rule>
+
+  <!-- ── Frequency-based rules ──────────────────────────────────────────── -->
+
+  <rule id="100110" level="12" frequency="5" timeframe="60">
+    <if_matched_sid>100101</if_matched_sid>
+    <description>AI Security: Repeated tool policy violations (5 in 60s) — possible tool misuse attack</description>
+    <group>ai.tool_misuse,attack,</group>
+  </rule>
+
+  <rule id="100111" level="14" frequency="3" timeframe="120">
+    <if_matched_sid>100100</if_matched_sid>
+    <description>AI Security: Multiple prompt injection attempts (3 in 120s) — possible automated attack</description>
+    <group>ai.prompt_injection,attack,</group>
+  </rule>
+
+  <rule id="100112" level="13" frequency="2" timeframe="300">
+    <if_matched_sid>100102</if_matched_sid>
+    <description>AI Security: Repeated RAG poisoning detections — possible corpus poisoning campaign</description>
+    <group>ai.rag_poisoning,attack,</group>
+  </rule>
+
+</group>
