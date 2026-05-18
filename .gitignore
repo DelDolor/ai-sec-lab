@@ -1,7 +1,8 @@
 # ============================================================
-# Claude Code local settings (developer-specific, not project-wide)
+# Claude Code (local, not tracked)
 # ============================================================
 
+CLAUDE.md
 .claude/settings.local.json
 
 # ============================================================
